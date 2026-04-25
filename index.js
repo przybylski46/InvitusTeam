@@ -2,8 +2,8 @@ const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require
 const fs = require('fs');
 
 const TOKEN = process.env.TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID; // ID del bot
-const GUILD_ID = process.env.GUILD_ID; // ID del servidor
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
@@ -33,8 +33,8 @@ const commands = [
   new SlashCommandBuilder()
     .setName('reseña')
     .setDescription('Agregar una reseña')
-    .addStringOption(option =>
-      option.setName('persona').setDescription('Nombre de la persona').setRequired(true))
+    .addUserOption(option =>
+      option.setName('persona').setDescription('Usuario').setRequired(true))
     .addIntegerOption(option =>
       option.setName('estrellas').setDescription('1 a 5').setRequired(true))
     .addStringOption(option =>
@@ -43,18 +43,17 @@ const commands = [
   new SlashCommandBuilder()
     .setName('setembed')
     .setDescription('Registrar el embed de una persona')
-    .addStringOption(option =>
-      option.setName('persona').setDescription('Nombre').setRequired(true))
+    .addUserOption(option =>
+      option.setName('persona').setDescription('Usuario').setRequired(true))
     .addStringOption(option =>
       option.setName('mensaje_id').setDescription('ID del mensaje embed').setRequired(true)),
 
-  // 🆕 NUEVO COMANDO
   new SlashCommandBuilder()
     .setName('crearperfil')
     .setDescription('Crear embed de una persona')
-    .addStringOption(option =>
+    .addUserOption(option =>
       option.setName('persona')
-        .setDescription('Nombre')
+        .setDescription('Usuario')
         .setRequired(true))
 ];
 
@@ -99,7 +98,8 @@ client.on('interactionCreate', async interaction => {
 
   if (interaction.commandName === 'crearperfil') {
 
-    const persona = interaction.options.getString('persona');
+    const user = interaction.options.getUser('persona');
+    const persona = user.id;
 
     if (data[persona]) {
       return interaction.reply({
@@ -110,7 +110,7 @@ client.on('interactionCreate', async interaction => {
 
     const mensaje = await interaction.channel.send({
       embeds: [{
-        title: `👤 ${persona}`,
+        title: `👤 ${user.username}`,
         description: `⭐ Promedio: 0\n👥 Total: 0`,
         fields: [
           {
@@ -129,7 +129,7 @@ client.on('interactionCreate', async interaction => {
     saveData(data);
 
     return interaction.reply({
-      content: "Perfil creado automáticamente ✅",
+      content: `Perfil creado para <@${persona}> ✅`,
       ephemeral: true
     });
   }
@@ -139,7 +139,8 @@ client.on('interactionCreate', async interaction => {
   // =====================
 
   if (interaction.commandName === 'setembed') {
-    const persona = interaction.options.getString('persona');
+    const user = interaction.options.getUser('persona');
+    const persona = user.id;
     const mensaje_id = interaction.options.getString('mensaje_id');
 
     if (!data[persona]) data[persona] = { reviews: [], embedId: mensaje_id };
@@ -156,7 +157,9 @@ client.on('interactionCreate', async interaction => {
 
   if (interaction.commandName === 'reseña') {
 
-    const persona = interaction.options.getString('persona');
+    const user = interaction.options.getUser('persona');
+    const persona = user.id;
+
     const estrellas = interaction.options.getInteger('estrellas');
     const comentario = interaction.options.getString('comentario');
 
@@ -168,7 +171,6 @@ client.on('interactionCreate', async interaction => {
       return interaction.reply({ content: "Esa persona no tiene embed registrado", ephemeral: true });
     }
 
-    // Evitar duplicados
     data[persona].reviews = data[persona].reviews.filter(r => r.user !== interaction.user.id);
 
     data[persona].reviews.push({
@@ -195,7 +197,7 @@ client.on('interactionCreate', async interaction => {
 
       await mensaje.edit({
         embeds: [{
-          title: `👤 ${persona}`,
+          title: `👤 ${user.username}`,
           description: `⭐ Promedio: ${promedio}\n👥 Total: ${reviews.length}`,
           fields: [
             {
