@@ -46,7 +46,15 @@ const commands = [
     .addStringOption(option =>
       option.setName('persona').setDescription('Nombre').setRequired(true))
     .addStringOption(option =>
-      option.setName('mensaje_id').setDescription('ID del mensaje embed').setRequired(true))
+      option.setName('mensaje_id').setDescription('ID del mensaje embed').setRequired(true)),
+
+new SlashCommandBuilder()
+  .setName('crearperfil')
+  .setDescription('Crear perfil de una persona')
+  .addStringOption(option =>
+    option.setName('persona')
+      .setDescription('Nombre de la persona')
+      .setRequired(true))
 ];
 
 // =====================
@@ -80,6 +88,47 @@ client.once('ready', () => {
 // =====================
 
 client.on('interactionCreate', async interaction => {
+if (interaction.commandName === 'crearperfil') {
+
+  const persona = interaction.options.getString('persona');
+
+  let data = loadData();
+
+  // evitar duplicados
+  if (data[persona]) {
+    return interaction.reply({
+      content: "Ese perfil ya existe ❌",
+      ephemeral: true
+    });
+  }
+
+  const { EmbedBuilder } = require('discord.js');
+
+  const embed = new EmbedBuilder()
+    .setTitle(`👤 ${persona}`)
+    .setDescription("⭐ Promedio: 0\n👥 Total: 0")
+    .addFields({
+      name: "📝 Últimas reseñas",
+      value: "Sin reseñas"
+    })
+    .setColor(0x5865F2);
+
+  const mensaje = await interaction.channel.send({ embeds: [embed] });
+
+  // guardar en JSON
+  data[persona] = {
+    reviews: [],
+    embedId: mensaje.id
+  };
+
+  saveData(data);
+
+  await interaction.reply({
+    content: "Perfil creado ✅",
+    ephemeral: true
+  });
+}
+
   if (!interaction.isChatInputCommand()) return;
 
   let data = loadData();
