@@ -1,5 +1,6 @@
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const fs = require('fs');
+const { AttachmentBuilder } = require('discord.js');
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -54,7 +55,15 @@ const commands = [
     .addUserOption(option =>
       option.setName('persona')
         .setDescription('Usuario')
-        .setRequired(true))
+        .setRequired(true)),
+
+  new SlashCommandBuilder()
+  .setName('info')
+  .setDescription('Embed')
+  .addStringOption(option =>
+    option.setName('nombre')
+      .setDescription('Nombre del archivo (sin .json)')
+      .setRequired(true))
 ];
 
 // =====================
@@ -92,6 +101,45 @@ client.on('interactionCreate', async interaction => {
 
   let data = loadData();
 
+  // =====================
+  // 🆕 EMBEDS INFO
+  // =====================
+
+  if (interaction.commandName === 'info') {
+
+  const nombre = interaction.options.getString('nombre');
+
+  try {
+    const perfil = JSON.parse(
+      fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')
+    );
+
+    // ⚠️ si usas imágenes tipo attachment://
+    const files = [];
+
+    // revisa imágenes automáticamente
+    perfil.embeds.forEach(embed => {
+      if (embed.image?.url?.startsWith('attachment://')) {
+        const fileName = embed.image.url.replace('attachment://', '');
+        files.push(new AttachmentBuilder(`./${fileName}`));
+      }
+    });
+
+    await interaction.channel.send({
+      ...perfil,
+      files
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return interaction.reply({
+      content: "❌",
+      ephemeral: true
+    });
+  }
+  }
+  
   // =====================
   // 🆕 CREAR PERFIL
   // =====================
