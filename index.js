@@ -235,7 +235,7 @@ client.on('interactionCreate', async interaction => {
     let total = reviews.reduce((acc, r) => acc + r.estrellas, 0);
     let promedio = (total / reviews.length).toFixed(1);
 
-    let ultimas = reviews.slice(-5).map(r =>
+    let ultimas = reviews.slice(-10).map(r =>
       `⭐ ${r.estrellas} - ${r.name}: ${r.comentario}`
     ).join("\n");
 
