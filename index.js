@@ -239,28 +239,47 @@ if (interaction.commandName === 'reseña') {
   ).join("\n");
 
   try {
-    const canal = interaction.channel;
-    const mensaje = await canal.messages.fetch(data[persona].embedId);
+  const canal = interaction.channel;
+  const mensaje = await canal.messages.fetch(data[persona].embedId);
 
-    const embedActualizado = generarEmbedReseñas(
-      user.username,
-      promedio,
-      total,
-      ultimas || "Sin reseñas"
-    );
+  const embedActualizado = generarEmbedReseñas(
+    user.username,
+    promedio,
+    total,
+    ultimas || "Sin reseñas"
+  );
 
-    const imagen = new AttachmentBuilder('./1000073586.png');
+  const imagen = new AttachmentBuilder('./1000073586.png');
 
-    await mensaje.edit({
-      embeds: [embedActualizado],
-      files: [imagen]
-    });
+  await mensaje.edit({
+    embeds: [embedActualizado],
+    files: [imagen]
+  });
 
-  } catch (error) {
-    console.error("Error al editar el embed:", error);
-  }
+} catch (error) {
+  console.log("El embed no existe, recreando...");
 
-  return interaction.reply({ content: "Reseña guardada ⭐", ephemeral: true });
+  const canal = interaction.channel;
+
+  const embedNuevo = generarEmbedReseñas(
+    user.username,
+    promedio,
+    total,
+    ultimas || "Sin reseñas"
+  );
+
+  const imagen = new AttachmentBuilder('./1000073586.png');
+
+  const nuevoMensaje = await canal.send({
+    embeds: [embedNuevo],
+    files: [imagen]
+  });
+
+  data[persona].embedId = nuevoMensaje.id;
+  saveData(data);
+}
+
+  return interaction.reply({ content: "Reseña guardada ✨", ephemeral: true });
 }
 });
 
