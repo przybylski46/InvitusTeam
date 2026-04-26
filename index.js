@@ -24,23 +24,6 @@ const client = new Client({
 });
 
 // =====================
-// 💤 AUTO APAGADO
-// =====================
-
-let lastUse = Date.now();
-
-client.on('interactionCreate', () => {
-  lastUse = Date.now();
-});
-
-setInterval(() => {
-  if (Date.now() - lastUse > 3600000) { // 1 hora
-    console.log("Durmiendo bot...");
-    process.exit(0);
-  }
-}, 600000); // cada 10 min
-
-// =====================
 // 📦 BASE DE DATOS
 // =====================
 
