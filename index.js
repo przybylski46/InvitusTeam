@@ -100,7 +100,7 @@ client.once('ready', () => {
 
 function generarEmbedReseñas(username, promedio, total, listaReseñas) {
   const template = {
-    description: `# <a:Flower:1497651793910300894> ⋆˚࿔ ┆ Reseñas de ${username}┆\n### <a:Star:1497749189096898680> Promedio:\n> ${promedio}\n### <:Pergamimo:1497788835495542944> Reseñas totales:\n> ${total}\n\n### <a:Time:1497788363241947266> Últimas reseñas:\n${listaReseñas}`,
+    description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆\n### <a:Star:1497749189096898680> Promedio:\n> ${promedio}\n### <:Pergamimo:1497788835495542944> Reseñas totales:\n> ${total}\n\n### <a:Time:1497788363241947266> Últimas reseñas:\n${listaReseñas}`,
     color: 16758784,
     image: { url: "attachment://1000073586.png" }
   };
