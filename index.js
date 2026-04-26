@@ -258,7 +258,7 @@ client.on('interactionCreate', async interaction => {
     const promedio = (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1);
 
     const ultimas = reviews.slice(-10).map(r =>
-      `> <a:Star:1497749189096898680> **${r.estrellas}** - ${r.name}: ${r.comentario}`
+      `> <a:Star:1497749189096898680> **${r.estrellas} ▸ ${r.name}:** ${r.comentario}`
     ).join("\n");
 
     try {
@@ -296,7 +296,7 @@ client.on('interactionCreate', async interaction => {
 
     saveLater();
 
-    return interaction.reply({ content: "Reseña guardada ✨", ephemeral: true });
+    return interaction.reply({ content: "Reseña guardada", ephemeral: true });
   }
 
 });
