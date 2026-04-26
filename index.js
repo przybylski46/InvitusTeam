@@ -12,8 +12,7 @@ require('http').createServer((req, res) => {
 
 // Bot normal
 
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, AttachmentBuilder } = require('discord.js');
-const fs = require('fs');
+const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -51,9 +50,6 @@ function saveLater() {
     console.log("💾 Guardado");
   }, 5000);
 }
-
-// 🖼️ IMAGEN REUTILIZABLE
-const imagen = new AttachmentBuilder('./1000073586.png');
 
 // =====================
 // ⚙️ COMANDOS
@@ -136,7 +132,7 @@ function generarEmbedReseñas(username, promedio, total, listaReseñas) {
 ### <a:Time:1497788363241947266> Últimas reseñas:
 ${listaReseñas}`,
     color: 16758784,
-    image: { url: "attachment://1000073586.png" }
+    image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/1498040507031486474/1000073586.png?ex=69efb671&is=69ee64f1&hm=5d633196a401b97c7429e1bc3c5da5dc553eb0297e03b170e2e374d000e9581c&" }
   };
 }
 
@@ -193,7 +189,6 @@ client.on('interactionCreate', async interaction => {
 
     const mensaje = await interaction.channel.send({
       embeds: [embedData],
-      files: [imagen]
     });
 
     data[persona] = { reviews: [], embedId: mensaje.id };
@@ -272,7 +267,6 @@ client.on('interactionCreate', async interaction => {
 
       await mensaje.edit({
         embeds: [embedActualizado],
-        files: [imagen]
       });
 
     } catch (error) {
@@ -287,7 +281,6 @@ client.on('interactionCreate', async interaction => {
 
       const nuevoMensaje = await interaction.channel.send({
         embeds: [embedNuevo],
-        files: [imagen]
       });
 
       data[persona].embedId = nuevoMensaje.id;
