@@ -13,6 +13,7 @@ require('http').createServer((req, res) => {
 // Bot normal
 
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
+const fs = require('fs');
 
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -154,18 +155,8 @@ client.on('interactionCreate', async interaction => {
         fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')
       );
 
-      const files = [];
-
-      perfil.embeds?.forEach(embed => {
-        if (embed.image?.url?.startsWith('attachment://')) {
-          const fileName = embed.image.url.replace('attachment://', '');
-          files.push(new AttachmentBuilder(`./${fileName}`));
-        }
-      });
-
       await interaction.channel.send({
         ...perfil,
-        files
       });
 
     } catch (error) {
