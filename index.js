@@ -182,8 +182,13 @@ client.on('interactionCreate', async interaction => {
       embeds: [embedData],
     });
 
-    data[persona] = { reviews: [], embedId: mensaje.id };
-    saveLater();
+    data[persona] = { 
+  reviews: [], 
+  embedId: mensaje.id,
+  channelId: mensaje.channel.id
+};
+
+saveLater();
 
     return interaction.reply({ content: `Perfil creado para <@${persona}> ✅`, ephemeral: true });
   }
@@ -191,18 +196,34 @@ client.on('interactionCreate', async interaction => {
   // =====================
   // 🧩 SET EMBED
   // =====================
-  if (interaction.commandName === 'setembed') {
-    const user = interaction.options.getUser('persona');
-    const persona = user.id;
-    const mensaje_id = interaction.options.getString('mensaje_id');
+if (interaction.commandName === 'setembed') {
+  const user = interaction.options.getUser('persona');
+  const persona = user.id;
+  const mensaje_id = interaction.options.getString('mensaje_id');
 
-    if (!data[persona]) data[persona] = { reviews: [], embedId: mensaje_id };
-    else data[persona].embedId = mensaje_id;
+  try {
+    const canal = interaction.channel;
+    const mensaje = await canal.messages.fetch(mensaje_id);
+
+    if (!data[persona]) {
+      data[persona] = {
+        reviews: [],
+        embedId: mensaje.id,
+        channelId: mensaje.channel.id
+      };
+    } else {
+      data[persona].embedId = mensaje.id;
+      data[persona].channelId = mensaje.channel.id;
+    }
 
     saveLater();
 
-    return interaction.reply({ content: "Embed registrado ✅", ephemeral: true });
+    return interaction.reply({ content: "Embed registrado correctamente ✅", ephemeral: true });
+
+  } catch (error) {
+    return interaction.reply({ content: "❌ No encontré ese mensaje en este canal", ephemeral: true });
   }
+}
 
   // =====================
   // ⭐ RESEÑA
@@ -247,7 +268,13 @@ client.on('interactionCreate', async interaction => {
     ).join("\n");
 
     try {
-      const mensaje = await interaction.channel.messages.fetch(data[persona].embedId);
+ const canal = await client.channels.fetch(data[persona].channelId);
+
+if (!canal || !canal.isTextBased()) {
+  throw new Error("Canal inválido");
+}
+
+const mensaje = await canal.messages.fetch(data[persona].embedId);
 
       const embedActualizado = generarEmbedReseñas(
         user.username,
@@ -270,9 +297,17 @@ client.on('interactionCreate', async interaction => {
         ultimas || "Sin reseñas"
       );
 
-      const nuevoMensaje = await interaction.channel.send({
-        embeds: [embedNuevo],
-      });
+      let canal;
+try {
+  canal = await client.channels.fetch(data[persona].channelId);
+  if (!canal || !canal.isTextBased()) throw new Error();
+} catch {
+  return interaction.reply({ content: "❌ Canal del embed inválido", ephemeral: true });
+}
+
+const nuevoMensaje = await canal.send({
+  embeds: [embedNuevo],
+});
 
       data[persona].embedId = nuevoMensaje.id;
     }
