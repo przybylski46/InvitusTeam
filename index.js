@@ -96,6 +96,19 @@ client.once('ready', () => {
 // 💬 INTERACCIONES
 // =====================
 
+// Embed Discohook
+
+function generarEmbedReseñas(username, promedio, total, listaReseñas) {
+  const template = {
+    description: `# <a:Flower:1497651793910300894> ⋆˚࿔ ┆ Reseñas de ${username}┆\n### <a:Star:1497749189096898680> Promedio:\n> ${promedio}\n### <:Pergamimo:1497788835495542944> Reseñas totales:\n> ${total}\n\n### <a:Time:1497788363241947266> Últimas reseñas:\n${listaReseñas}`,
+    color: 16758784,
+    image: { url: "attachment://1000073586.png" }
+  };
+  return template;
+}
+
+//
+
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -145,42 +158,28 @@ client.on('interactionCreate', async interaction => {
   // =====================
 
   if (interaction.commandName === 'crearperfil') {
-
     const user = interaction.options.getUser('persona');
     const persona = user.id;
 
     if (data[persona]) {
-      return interaction.reply({
-        content: "Ese perfil ya existe ❌",
-        ephemeral: true
-      });
+      return interaction.reply({ content: "Ese perfil ya existe ❌", ephemeral: true });
     }
 
+    // Usamos la plantilla con valores iniciales (0)
+    const embedData = generarEmbedReseñas(user.username, "0.0", "0", "Sin reseñas aún");
+    const imagen = new AttachmentBuilder('./1000073586.png');
+
     const mensaje = await interaction.channel.send({
-      embeds: [{
-        title: `👤 ${user.username}`,
-        description: `⭐ Promedio: 0\n👥 Total: 0`,
-        fields: [
-          {
-            name: "📝 Últimas reseñas",
-            value: "Sin reseñas"
-          }
-        ]
-      }]
+      embeds: [embedData],
+      files: [imagen]
     });
 
-    data[persona] = {
-      reviews: [],
-      embedId: mensaje.id
-    };
-
+    data[persona] = { reviews: [], embedId: mensaje.id };
     saveData(data);
 
-    return interaction.reply({
-      content: `Perfil creado para <@${persona}> ✅`,
-      ephemeral: true
-    });
+    return interaction.reply({ content: `Perfil creado para <@${persona}> ✅`, ephemeral: true });
   }
+
 
   // =====================
   // 🧩 REGISTRAR EMBED
@@ -236,33 +235,37 @@ client.on('interactionCreate', async interaction => {
     let promedio = (total / reviews.length).toFixed(1);
 
     let ultimas = reviews.slice(-10).map(r =>
-      `⭐ ${r.estrellas} - ${r.name}: ${r.comentario}`
+      `<a:Star:1497749189096898680> **${r.estrellas} ▸ ${r.name}:** ${r.comentario}`
+    ).join("\n");
+
+    try {
+          // ... (aquí va tu lógica de calcular promedio y total que ya tienes)
+    let total = reviews.length;
+    let promedio = (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1);
+
+    // Formateamos las últimas 10 reseñas para la descripción
+    let ultimas = reviews.slice(-10).map(r =>
+      `> <a:Star:1497749189096898680> **${r.estrellas}** - ${r.name}: ${r.comentario}`
     ).join("\n");
 
     try {
       const canal = interaction.channel;
       const mensaje = await canal.messages.fetch(data[persona].embedId);
 
+      // Generamos el nuevo diseño con los datos actualizados
+      const embedActualizado = generarEmbedReseñas(user.username, promedio, total, ultimas || "Sin reseñas");
+      const imagen = new AttachmentBuilder('./1000073586.png');
+
       await mensaje.edit({
-        embeds: [{
-          title: `👤 ${user.username}`,
-          description: `⭐ Promedio: ${promedio}\n👥 Total: ${reviews.length}`,
-          fields: [
-            {
-              name: "📝 Últimas reseñas",
-              value: ultimas || "Sin reseñas"
-            }
-          ]
-        }]
+        embeds: [embedActualizado],
+        files: [imagen]
       });
 
     } catch (error) {
-      console.error(error);
+      console.error("Error al editar el embed:", error);
     }
 
     return interaction.reply({ content: "Reseña guardada ⭐", ephemeral: true });
-  }
 
-});
 
 client.login(TOKEN);
