@@ -202,70 +202,66 @@ client.on('interactionCreate', async interaction => {
   // ⭐ RESEÑA
   // =====================
 
-  if (interaction.commandName === 'reseña') {
+if (interaction.commandName === 'reseña') {
 
-    const user = interaction.options.getUser('persona');
-    const persona = user.id;
+  const user = interaction.options.getUser('persona');
+  const persona = user.id;
 
-    const estrellas = interaction.options.getInteger('estrellas');
-    const comentario = interaction.options.getString('comentario');
+  const estrellas = interaction.options.getInteger('estrellas');
+  const comentario = interaction.options.getString('comentario');
 
-    if (estrellas < 1 || estrellas > 5) {
-      return interaction.reply({ content: "Pon entre 1 y 5 estrellas", ephemeral: true });
-    }
+  if (estrellas < 1 || estrellas > 5) {
+    return interaction.reply({ content: "Pon entre 1 y 5 estrellas", ephemeral: true });
+  }
 
-    if (!data[persona]) {
-      return interaction.reply({ content: "Esa persona no tiene embed registrado", ephemeral: true });
-    }
+  if (!data[persona]) {
+    return interaction.reply({ content: "Esa persona no tiene embed registrado", ephemeral: true });
+  }
 
-    data[persona].reviews = data[persona].reviews.filter(r => r.user !== interaction.user.id);
+  data[persona].reviews = data[persona].reviews.filter(r => r.user !== interaction.user.id);
 
-    data[persona].reviews.push({
-      user: interaction.user.id,
-      name: interaction.user.username,
-      estrellas,
-      comentario
+  data[persona].reviews.push({
+    user: interaction.user.id,
+    name: interaction.user.username,
+    estrellas,
+    comentario
+  });
+
+  saveData(data);
+
+  const reviews = data[persona].reviews;
+
+  const total = reviews.length;
+  const promedio = (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1);
+
+  const ultimas = reviews.slice(-10).map(r =>
+    `> <a:Star:1497749189096898680> **${r.estrellas}** - ${r.name}: ${r.comentario}`
+  ).join("\n");
+
+  try {
+    const canal = interaction.channel;
+    const mensaje = await canal.messages.fetch(data[persona].embedId);
+
+    const embedActualizado = generarEmbedReseñas(
+      user.username,
+      promedio,
+      total,
+      ultimas || "Sin reseñas"
+    );
+
+    const imagen = new AttachmentBuilder('./1000073586.png');
+
+    await mensaje.edit({
+      embeds: [embedActualizado],
+      files: [imagen]
     });
 
-    saveData(data);
+  } catch (error) {
+    console.error("Error al editar el embed:", error);
+  }
 
-    let reviews = data[persona].reviews;
-
-    let total = reviews.reduce((acc, r) => acc + r.estrellas, 0);
-    let promedio = (total / reviews.length).toFixed(1);
-
-    let ultimas = reviews.slice(-10).map(r =>
-      `<a:Star:1497749189096898680> **${r.estrellas} ▸ ${r.name}:** ${r.comentario}`
-    ).join("\n");
-
-    try {
-          // ... (aquí va tu lógica de calcular promedio y total que ya tienes)
-    let total = reviews.length;
-    let promedio = (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1);
-
-    // Formateamos las últimas 10 reseñas para la descripción
-    let ultimas = reviews.slice(-10).map(r =>
-      `> <a:Star:1497749189096898680> **${r.estrellas}** - ${r.name}: ${r.comentario}`
-    ).join("\n");
-
-    try {
-      const canal = interaction.channel;
-      const mensaje = await canal.messages.fetch(data[persona].embedId);
-
-      // Generamos el nuevo diseño con los datos actualizados
-      const embedActualizado = generarEmbedReseñas(user.username, promedio, total, ultimas || "Sin reseñas");
-      const imagen = new AttachmentBuilder('./1000073586.png');
-
-      await mensaje.edit({
-        embeds: [embedActualizado],
-        files: [imagen]
-      });
-
-    } catch (error) {
-      console.error("Error al editar el embed:", error);
-    }
-
-    return interaction.reply({ content: "Reseña guardada ⭐", ephemeral: true });
-
+  return interaction.reply({ content: "Reseña guardada ⭐", ephemeral: true });
+}
+});
 
 client.login(TOKEN);
