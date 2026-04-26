@@ -1,3 +1,17 @@
+// =====================
+// 🌐 SERVIDOR WEB (WAKE)
+// =====================
+
+const PORT = process.env.PORT || 3000;
+
+require('http').createServer((req, res) => {
+  res.end('Bot activo');
+}).listen(PORT, () => {
+  console.log("🌐 web activo");
+});
+
+// Bot normal
+
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, AttachmentBuilder } = require('discord.js');
 const fs = require('fs');
 
@@ -299,18 +313,6 @@ client.on('interactionCreate', async interaction => {
     return interaction.reply({ content: "Reseña guardada", ephemeral: true });
   }
 
-});
-
-// =====================
-// 🌐 SERVIDOR WEB (WAKE)
-// =====================
-
-const PORT = process.env.PORT || 3000;
-
-require('http').createServer((req, res) => {
-  res.end('Bot activo');
-}).listen(PORT, () => {
-  console.log("🌐 web activo");
 });
 
 client.login(TOKEN);
