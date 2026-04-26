@@ -10,6 +10,21 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
+// AUTO APAGADO
+
+let lastUse = Date.now();
+
+client.on('interactionCreate', () => {
+  lastUse = Date.now();
+});
+
+setInterval(() => {
+  if (Date.now() - lastUse > 3600000) {
+    console.log("Durmiendo bot...");
+    process.exit(0);
+  }
+}, 600000);
+
 // =====================
 // 📦 BASE DE DATOS SIMPLE
 // =====================
@@ -281,6 +296,14 @@ if (interaction.commandName === 'reseña') {
 
   return interaction.reply({ content: "Reseña guardada ✨", ephemeral: true });
 }
+});
+
+const PORT = process.env.PORT || 3000;
+
+require('http').createServer((req, res) => {
+  res.end('Bot activo');
+}).listen(PORT, () => {
+  console.log("🌐 web activo");
 });
 
 client.login(TOKEN);
