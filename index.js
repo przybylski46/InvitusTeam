@@ -10,7 +10,9 @@ require('http').createServer((req, res) => {
   console.log("🌐 web activo");
 });
 
-// Bot normal
+// =====================
+// 🤖 BOT
+// =====================
 
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const fs = require('fs');
@@ -39,10 +41,8 @@ function saveData(data) {
   fs.writeFileSync('reviews.json', JSON.stringify(data, null, 2));
 }
 
-// 🧠 DATA EN MEMORIA
 let data = loadData();
 
-// ⏱️ GUARDADO DIFERIDO
 let saveTimeout;
 function saveLater() {
   clearTimeout(saveTimeout);
@@ -50,6 +50,69 @@ function saveLater() {
     saveData(data);
     console.log("💾 Guardado");
   }, 5000);
+}
+
+// =====================
+// 🎮 ROBLOX + CACHE
+// =====================
+
+const avatarCache = new Map();
+const CACHE_TIME = 1000 * 60 * 10;
+
+async function getRobloxId(username) {
+  const res = await fetch("https://users.roblox.com/v1/usernames/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ usernames: [username] })
+  });
+
+  const data = await res.json();
+  return data.data[0]?.id;
+}
+
+async function getRobloxAvatar(userId) {
+  const now = Date.now();
+
+  if (avatarCache.has(userId)) {
+    const cached = avatarCache.get(userId);
+    if (now - cached.timestamp < CACHE_TIME) {
+      return cached.url;
+    }
+  }
+
+  const res = await fetch(
+    `https://thumbnails.roblox.com/v1/users/avatar-body?userIds=${userId}&size=720x720&format=Png`
+  );
+
+  const data = await res.json();
+  const url = data.data[0]?.imageUrl;
+
+  avatarCache.set(userId, { url, timestamp: now });
+
+  return url;
+}
+
+// =====================
+// 🔄 ACTUALIZAR EMBED
+// =====================
+
+async function actualizarMensajeDesdeJSON(client, nombre) {
+  const path = `./Embeds/${nombre}.json`;
+  const perfil = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+  if (!perfil.channelId || !perfil.embedId) return;
+
+  try {
+    const canal = await client.channels.fetch(perfil.channelId);
+    const mensaje = await canal.messages.fetch(perfil.embedId);
+
+    await mensaje.edit({
+      embeds: perfil.embeds
+    });
+
+  } catch {
+    console.log("❌ No se pudo actualizar el mensaje");
+  }
 }
 
 // =====================
@@ -61,57 +124,59 @@ const commands = [
     .setName('reseña')
     .setDescription('Agregar una reseña')
     .addUserOption(option =>
-      option.setName('persona').setDescription('Usuario').setRequired(true))
+      option.setName('persona').setRequired(true))
     .addIntegerOption(option =>
-      option.setName('estrellas').setDescription('1 a 5').setRequired(true))
+      option.setName('estrellas').setRequired(true))
     .addStringOption(option =>
-      option.setName('comentario').setDescription('Tu reseña').setRequired(true)),
+      option.setName('comentario').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('setembed')
-    .setDescription('Registrar el embed de una persona')
+    .setDescription('Registrar embed manualmente')
     .addUserOption(option =>
-      option.setName('persona').setDescription('Usuario').setRequired(true))
+      option.setName('persona').setRequired(true))
     .addStringOption(option =>
-      option.setName('mensaje_id').setDescription('ID del mensaje embed').setRequired(true)),
+      option.setName('mensaje_id').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('crearperfil')
-    .setDescription('Crear embed de una persona')
+    .setDescription('Crear perfil de reseñas')
     .addUserOption(option =>
-      option.setName('persona').setDescription('Usuario').setRequired(true)),
+      option.setName('persona').setRequired(true)),
 
   new SlashCommandBuilder()
     .setName('info')
-    .setDescription('Embed')
+    .setDescription('Enviar embed desde JSON')
     .addStringOption(option =>
-      option.setName('nombre')
-        .setDescription('Nombre del archivo (sin .json)')
-        .setRequired(true))
+      option.setName('nombre').setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName('editarroblox')
+    .setDescription('Actualizar avatar Roblox')
+    .addStringOption(option =>
+      option.setName('nombre').setRequired(true))
+    .addStringOption(option =>
+      option.setName('usuario').setRequired(true))
 ];
 
 // =====================
-// 🚀 REGISTRAR COMANDOS
+// 🚀 REGISTRAR
 // =====================
 
 if (process.env.REGISTER_COMMANDS === "true") {
   const rest = new REST({ version: '10' }).setToken(TOKEN);
 
   (async () => {
-    try {
-      await rest.put(
-        Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-        { body: commands }
-      );
-      console.log("✅ Comandos registrados");
-    } catch (error) {
-      console.error(error);
-    }
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: commands }
+    );
+    console.log("✅ Comandos registrados");
   })();
 }
 
 // =====================
-// 🤖 BOT LISTO
+// 🤖 READY
 // =====================
 
 client.once('ready', () => {
@@ -119,21 +184,20 @@ client.once('ready', () => {
 });
 
 // =====================
-// 🧩 EMBED GENERADOR
+// 🧩 EMBED RESEÑAS
 // =====================
 
 function generarEmbedReseñas(username, promedio, total, listaReseñas) {
   return {
     description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆
-### <a:Star:1497749189096898680> Promedio:
+### ⭐ Promedio:
 > ${promedio}
-### <:Pergamimo:1497788835495542944> Reseñas totales:
+### 📜 Total:
 > ${total}
 
-### <a:Time:1497788363241947266> Últimas reseñas:
+### 🕒 Últimas:
 ${listaReseñas}`,
-    color: 16758784,
-    image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/1498040507031486474/1000073586.png?ex=69efb671&is=69ee64f1&hm=5d633196a401b97c7429e1bc3c5da5dc553eb0297e03b170e2e374d000e9581c&" }
+    color: 16758784
   };
 }
 
@@ -151,13 +215,18 @@ client.on('interactionCreate', async interaction => {
     const nombre = interaction.options.getString('nombre');
 
     try {
-      const perfil = JSON.parse(
-        fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')
-      );
+      const path = `./Embeds/${nombre}.json`;
+      const perfil = JSON.parse(fs.readFileSync(path, 'utf8'));
 
-      await interaction.channel.send({
-        ...perfil,
+      const mensaje = await interaction.channel.send({
+        embeds: perfil.embeds
       });
+
+      // 🔥 guardar IDs automáticamente
+      perfil.channelId = mensaje.channel.id;
+      perfil.embedId = mensaje.id;
+
+      fs.writeFileSync(path, JSON.stringify(perfil, null, 2));
 
     } catch (error) {
       console.error(error);
@@ -166,64 +235,29 @@ client.on('interactionCreate', async interaction => {
   }
 
   // =====================
-  // 🆕 CREAR PERFIL
+  // 🧩 SET EMBED MANUAL
   // =====================
-  if (interaction.commandName === 'crearperfil') {
+  if (interaction.commandName === 'setembed') {
     const user = interaction.options.getUser('persona');
-    const persona = user.id;
+    const mensaje_id = interaction.options.getString('mensaje_id');
 
-    if (data[persona]) {
-      return interaction.reply({ content: "Ese perfil ya existe ❌", ephemeral: true });
-    }
+    try {
+      const mensaje = await interaction.channel.messages.fetch(mensaje_id);
 
-    const embedData = generarEmbedReseñas(user.username, "0.0", "0", "Sin reseñas aún");
-
-    const mensaje = await interaction.channel.send({
-      embeds: [embedData],
-    });
-
-    data[persona] = { 
-  reviews: [], 
-  embedId: mensaje.id,
-  channelId: mensaje.channel.id
-};
-
-saveLater();
-
-    return interaction.reply({ content: `Perfil creado para <@${persona}> ✅`, ephemeral: true });
-  }
-
-  // =====================
-  // 🧩 SET EMBED
-  // =====================
-if (interaction.commandName === 'setembed') {
-  const user = interaction.options.getUser('persona');
-  const persona = user.id;
-  const mensaje_id = interaction.options.getString('mensaje_id');
-
-  try {
-    const canal = interaction.channel;
-    const mensaje = await canal.messages.fetch(mensaje_id);
-
-    if (!data[persona]) {
-      data[persona] = {
+      data[user.id] = {
         reviews: [],
         embedId: mensaje.id,
         channelId: mensaje.channel.id
       };
-    } else {
-      data[persona].embedId = mensaje.id;
-      data[persona].channelId = mensaje.channel.id;
+
+      saveLater();
+
+      return interaction.reply({ content: "✅ Registrado", ephemeral: true });
+
+    } catch {
+      return interaction.reply({ content: "❌ No encontrado", ephemeral: true });
     }
-
-    saveLater();
-
-    return interaction.reply({ content: "Embed registrado correctamente ✅", ephemeral: true });
-
-  } catch (error) {
-    return interaction.reply({ content: "❌ No encontré ese mensaje en este canal", ephemeral: true });
   }
-}
 
   // =====================
   // ⭐ RESEÑA
@@ -236,85 +270,71 @@ if (interaction.commandName === 'setembed') {
     const estrellas = interaction.options.getInteger('estrellas');
     const comentario = interaction.options.getString('comentario');
 
-    if (estrellas < 1 || estrellas > 5) {
-      return interaction.reply({ content: "Pon entre 1 y 5 estrellas", ephemeral: true });
-    }
-
     if (!data[persona]) {
-      return interaction.reply({ content: "Esa persona no tiene embed registrado", ephemeral: true });
+      return interaction.reply({ content: "❌ No tiene perfil", ephemeral: true });
     }
 
-    // eliminar reseña previa
-    data[persona].reviews = data[persona].reviews.filter(r => r.user !== interaction.user.id);
-
-    // agregar nueva
     data[persona].reviews.push({
-      user: interaction.user.id,
-      name: interaction.user.username,
       estrellas,
-      comentario
+      comentario,
+      name: interaction.user.username
     });
 
-    // 🧹 limitar tamaño
-    data[persona].reviews = data[persona].reviews.slice(-50);
-
     const reviews = data[persona].reviews;
-
     const total = reviews.length;
-    const promedio = (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1);
 
-    const ultimas = reviews.slice(-10).map(r =>
-      `> <a:Star:1497749189096898680> **${r.estrellas} ▸ ${r.name}:** ${r.comentario}`
+    const promedio = (
+      reviews.reduce((a, r) => a + r.estrellas, 0) / total
+    ).toFixed(1);
+
+    const lista = reviews.map(r =>
+      `> ⭐ ${r.estrellas} ${r.name}: ${r.comentario}`
     ).join("\n");
 
     try {
- const canal = await client.channels.fetch(data[persona].channelId);
-
-if (!canal || !canal.isTextBased()) {
-  throw new Error("Canal inválido");
-}
-
-const mensaje = await canal.messages.fetch(data[persona].embedId);
-
-      const embedActualizado = generarEmbedReseñas(
-        user.username,
-        promedio,
-        total,
-        ultimas || "Sin reseñas"
-      );
+      const canal = await client.channels.fetch(data[persona].channelId);
+      const mensaje = await canal.messages.fetch(data[persona].embedId);
 
       await mensaje.edit({
-        embeds: [embedActualizado],
+        embeds: [generarEmbedReseñas(user.username, promedio, total, lista)]
       });
 
-    } catch (error) {
-      console.log("🔁 Recreando embed...");
-
-      const embedNuevo = generarEmbedReseñas(
-        user.username,
-        promedio,
-        total,
-        ultimas || "Sin reseñas"
-      );
-
-      let canal;
-try {
-  canal = await client.channels.fetch(data[persona].channelId);
-  if (!canal || !canal.isTextBased()) throw new Error();
-} catch {
-  return interaction.reply({ content: "❌ Canal del embed inválido", ephemeral: true });
-}
-
-const nuevoMensaje = await canal.send({
-  embeds: [embedNuevo],
-});
-
-      data[persona].embedId = nuevoMensaje.id;
+    } catch {
+      console.log("❌ Error editando embed");
     }
 
     saveLater();
+    return interaction.reply({ content: "✅ Reseña guardada", ephemeral: true });
+  }
 
-    return interaction.reply({ content: "Reseña guardada", ephemeral: true });
+  // =====================
+  // 🎮 EDITAR ROBLOX
+  // =====================
+  if (interaction.commandName === 'editarroblox') {
+    const nombre = interaction.options.getString('nombre');
+    const username = interaction.options.getString('usuario');
+
+    try {
+      const path = `./Embeds/${nombre}.json`;
+      const perfil = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+      const userId = await getRobloxId(username);
+      const avatar = await getRobloxAvatar(userId);
+
+      const embed = perfil.embeds.find(e => e.author?.name === "Roblox");
+
+      embed.image = { url: avatar };
+
+      fs.writeFileSync(path, JSON.stringify(perfil, null, 2));
+
+      await actualizarMensajeDesdeJSON(client, nombre);
+
+      return interaction.reply({ content: "✅ Avatar actualizado", ephemeral: true });
+
+    } catch (error) {
+      console.error(error);
+      return interaction.reply({ content: "❌ Error", ephemeral: true });
+    }
   }
 
 });
