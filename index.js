@@ -115,7 +115,7 @@ console.error(error);
 // =====================
 
 client.once('ready', () => {
-console.log(🤖 Bot listo como ${client.user.tag});
+console.log(`🤖 Bot listo como ${client.user.tag}`);
 });
 
 // =====================
