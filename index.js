@@ -39,7 +39,9 @@ async function getRobloxAvatar(userId) {
   try {
     const res = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-fullbody?userIds=${userId}&size=420x420&format=Png&isCircular=false`);
     const data = await res.json();
-
+//❗❗❗❗❗❗❗❗❗❗❗❗❗❗
+console.log(JSON.stringify(data, null, 2));
+//❗❗❗❗❗❗❗❗❗❗❗❗❗❗
     const avatarUrl = data?.data?.[0]?.imageUrl;
 
     if (!avatarUrl) throw new Error("No avatar");
