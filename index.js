@@ -23,10 +23,14 @@ intents: [GatewayIntentBits.Guilds]
 
 // 🧠 CACHE ROBLOX
 
-const robloxCache = new Map();
-const CACHE_TIME = 10 * 60 * 1000;
-
 async function getRobloxAvatar(userId) {
+
+  const cached = robloxCache.get(userId);
+  if (cached && (Date.now() - cached.timestamp) < CACHE_TIME) {
+    console.log("⚡ Usando cache Roblox");
+    return cached.url;
+  }
+
   try {
     const url = `https://thumbnails.roblox.com/v1/users/avatar-fullbody?userIds=${userId}&size=420x420&format=Png&isCircular=false`;
 
@@ -34,9 +38,16 @@ async function getRobloxAvatar(userId) {
     const data = await res.json();
 
     console.log("📦 RESPUESTA ROBLOX:");
-    console.log(JSON.stringify(data, null, 2)); // 👈 CLAVE
+    console.log(JSON.stringify(data, null, 2));
 
     const avatarUrl = data?.data?.[0]?.imageUrl;
+
+    if (avatarUrl) {
+      robloxCache.set(userId, {
+        url: avatarUrl,
+        timestamp: Date.now()
+      });
+    }
 
     return avatarUrl || null;
 
@@ -153,13 +164,9 @@ description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆
 
 > ${promedio}
 
-
-
 <:Pergamimo:1497788835495542944> Reseñas totales:
 
 > ${total}
-
-
 
 <a:Time:1497788363241947266> Últimas reseñas:
 
@@ -184,9 +191,16 @@ try {
     fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')  
   );  
 
-  await interaction.channel.send({  
-    ...perfil,  
-  });  
+  const mensaje = await interaction.channel.send({
+  ...perfil,
+});
+return interaction.reply({ content: "✅ Embed enviado", ephemeral: true });
+
+// guardar datos
+perfil.channelId = mensaje.channel.id;
+perfil.messageId = mensaje.id;
+
+fs.writeFileSync(`./Embeds/${nombre}.json`, JSON.stringify(perfil, null, 2));
 
 } catch (error) {  
   console.error(error);  
@@ -209,19 +223,17 @@ if (interaction.commandName === 'actualizaravatar') {
       return interaction.reply({ content: "❌ No robloxId", ephemeral: true });
     }
 
-    const persona = perfil.discordId;
+    if (!perfil.channelId || !perfil.messageId) {
+      return interaction.reply({ content: "❌ Este embed no está registrado aún (usa /info primero)", ephemeral: true });
+    }
 
-if (!data[persona] || !data[persona].embedId || !data[persona].channelId) {
-  return interaction.reply({ content: "❌ No hay embed registrado con setembed", ephemeral: true });
-}
-
-    const canal = await client.channels.fetch(data[persona].channelId);
+    const canal = await client.channels.fetch(perfil.channelId);
 
     if (!canal || !canal.isTextBased()) {
       return interaction.reply({ content: "❌ Canal inválido", ephemeral: true });
     }
 
-    const mensaje = await canal.messages.fetch(data[persona].embedId);
+    const mensaje = await canal.messages.fetch(perfil.messageId);
 
     const avatar = await getRobloxAvatar(perfil.robloxId);
 
@@ -229,7 +241,7 @@ if (!data[persona] || !data[persona].embedId || !data[persona].channelId) {
       return interaction.reply({ content: "❌ No se pudo obtener avatar", ephemeral: true });
     }
 
-    // 🔥 SOLO cambiamos segunda imagen
+    // 🔥 actualizar imagen
     perfil.embeds[1].image = { url: avatar };
 
     await mensaje.edit({
