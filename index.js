@@ -127,20 +127,13 @@ return {
 description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆
 
 <a:Star:1497749189096898680> Promedio:
-
 > ${promedio}
 
-
-
 <:Pergamimo:1497788835495542944> Reseñas totales:
-
 > ${total}
 
-
-
 <a:Time:1497788363241947266> Últimas reseñas:
-
-${listaReseñas}`,
+> ${listaReseñas}`,
 color: 16758784,
 image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/1498040507031486474/1000073586.png?ex=69efb671&is=69ee64f1&hm=5d633196a401b97c7429e1bc3c5da5dc553eb0297e03b170e2e374d000e9581c&" }
 };
