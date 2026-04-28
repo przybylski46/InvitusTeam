@@ -27,34 +27,21 @@ const robloxCache = new Map();
 const CACHE_TIME = 10 * 60 * 1000;
 
 async function getRobloxAvatar(userId) {
-  const now = Date.now();
-
-  if (robloxCache.has(userId)) {
-    const cached = robloxCache.get(userId);
-    if (now - cached.timestamp < CACHE_TIME) {
-      return cached.url;
-    }
-  }
-
   try {
-    const res = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-fullbody?userIds=${userId}&size=420x420&format=Png&isCircular=false`);
+    const url = `https://thumbnails.roblox.com/v1/users/avatar-fullbody?userIds=${userId}&size=420x420&format=Png&isCircular=false`;
+
+    const res = await fetch(url);
     const data = await res.json();
-//❗❗❗❗❗❗❗❗❗❗❗❗❗❗
-console.log(JSON.stringify(data, null, 2));
-//❗❗❗❗❗❗❗❗❗❗❗❗❗❗
+
+    console.log("📦 RESPUESTA ROBLOX:");
+    console.log(JSON.stringify(data, null, 2)); // 👈 CLAVE
+
     const avatarUrl = data?.data?.[0]?.imageUrl;
 
-    if (!avatarUrl) throw new Error("No avatar");
-
-    robloxCache.set(userId, {
-      url: avatarUrl,
-      timestamp: now
-    });
-
-    return avatarUrl;
+    return avatarUrl || null;
 
   } catch (err) {
-    console.log("❌ Error Roblox:", err);
+    console.log("❌ Error Roblox REAL:", err);
     return null;
   }
 }
