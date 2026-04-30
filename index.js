@@ -78,15 +78,15 @@ option.setName('comentario').setDescription('Tu reseña').setRequired(true)),
 
 new SlashCommandBuilder()
 .setName('setembed')
-.setDescription('Registrar el embed de una persona')
+.setDescription('Vincular embed a persona')
 .addUserOption(option =>
 option.setName('persona').setDescription('Usuario').setRequired(true))
 .addStringOption(option =>
-option.setName('mensaje_id').setDescription('ID del mensaje embed').setRequired(true)),
+option.setName('mensaje_id').setDescription('ID del embed').setRequired(true)),
 
 new SlashCommandBuilder()
 .setName('crearperfil')
-.setDescription('Crear embed de una persona')
+.setDescription('Crear perfil de una persona')
 .addUserOption(option =>
 option.setName('persona').setDescription('Usuario').setRequired(true)),
 
@@ -95,7 +95,7 @@ new SlashCommandBuilder()
 .setDescription('Embed')
 .addStringOption(option =>
 option.setName('nombre')
-.setDescription('Nombre del archivo')
+.setDescription('Archivo')
 .setRequired(true))
 ];
 
@@ -200,7 +200,7 @@ const user = interaction.options.getUser('persona');
 const persona = user.id;
 
 if (data[persona]) {  
-  return interaction.reply({ content: "Ese perfil ya existe ❌", ephemeral: true });  
+  return interaction.reply({ content: "El perfil ya existe", ephemeral: true });  
 }  
 
 const embedData = generarEmbedReseñas(user.username, "0.0", "0", "Sin reseñas aún");  
@@ -247,10 +247,11 @@ if (!data[persona]) {
 
 saveLater();  
 
-return interaction.reply({ content: "Embed registrado correctamente ✅", ephemeral: true });
+return interaction.reply({ content: "✅", ephemeral: true });
 
+// No encontrar mensaje en canal
 } catch (error) {
-return interaction.reply({ content: "❌ No encontré ese mensaje en este canal", ephemeral: true });
+return interaction.reply({ content: "❌", ephemeral: true });
 }
 }
 
@@ -270,7 +271,7 @@ if (estrellas < 1 || estrellas > 5) {
 }  
 
 if (!data[persona]) {  
-  return interaction.reply({ content: "Esa persona no tiene embed registrado", ephemeral: true });  
+  return interaction.reply({ content: "No está vinculado", ephemeral: true });  
 }  
 
 // eliminar reseña previa  
@@ -333,7 +334,7 @@ try {
 canal = await client.channels.fetch(data[persona].channelId);
 if (!canal || !canal.isTextBased()) throw new Error();
 } catch {
-return interaction.reply({ content: "❌ Canal del embed inválido", ephemeral: true });
+return interaction.reply({ content: "Canal incorrecto", ephemeral: true });
 }
 
 const nuevoMensaje = await canal.send({
@@ -345,7 +346,7 @@ data[persona].embedId = nuevoMensaje.id;
 
 saveLater();  
 
-return interaction.reply({ content: "Reseña guardada", ephemeral: true });
+return interaction.reply({ content: "✅", ephemeral: true });
 
 }
 
