@@ -95,7 +95,7 @@ new SlashCommandBuilder()
 .setDescription('Embed')
 .addStringOption(option =>
 option.setName('nombre')
-.setDescription('Nombre del archivo (sin .json)')
+.setDescription('Nombre del archivo')
 .setRequired(true))
 ];
 
