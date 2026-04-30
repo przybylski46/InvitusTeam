@@ -1,5 +1,4 @@
 if (process.env.BOT_OFF === "false") {
-  console.log("Bot apagado");
   process.exit(0);
 }
 
