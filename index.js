@@ -1,6 +1,11 @@
-// =====================
+if (process.env.BOT_OFF === "true") {
+  console.log("Bot apagado");
+  process.exit(0);
+}
+
+// 🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫
+
 // 🌐 SERVIDOR WEB (WAKE)
-// =====================
 
 const PORT = process.env.PORT || 3000;
 
