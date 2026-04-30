@@ -12,8 +12,16 @@ console.log("🌐 web activo");
 
 // Bot normal
 
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
+const { 
+  Client, 
+  GatewayIntentBits, 
+  SlashCommandBuilder, 
+  REST, 
+  Routes,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require('discord.js');
 const fs = require('fs');
 
 const TOKEN = process.env.TOKEN;
@@ -158,9 +166,24 @@ try {
     fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')  
   );  
 
-  await interaction.channel.send({  
-    ...perfil,  
-  });  
+let components = [];
+
+if (nombre === "integrantes") {
+
+  const boton = new ButtonBuilder()
+    .setLabel("Ver integrantes")
+    .setStyle(ButtonStyle.Link)
+    .setURL("https://discord.com/channels/1112736931160281150/1499278020702371891");
+
+  const row = new ActionRowBuilder().addComponents(boton);
+
+  components.push(row);
+}
+
+await interaction.channel.send({  
+  embeds: perfil.embeds,
+  components
+});
 
 } catch (error) {  
   console.error(error);  
