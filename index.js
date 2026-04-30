@@ -12,6 +12,7 @@ console.log("🌐 web activo");
 
 // Bot normal
 
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const fs = require('fs');
 
