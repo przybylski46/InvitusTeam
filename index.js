@@ -362,23 +362,6 @@ try {
   );  
 
   let canal;
-
-try {
-canal = await client.channels.fetch(perfil.channelId);
-if (!canal || !canal.isTextBased()) throw new Error();
-} catch {
-return interaction.reply({ content: "Canal incorrecto", ephemeral: true });
-}
-
-const nuevoMensaje = await canal.send({
-embeds: [embedNuevo],
-});
-
-perfil.embedId = nuevoMensaje.id;
-await perfil.save();
-
-return interaction.reply({ content: "✅", ephemeral: true });
-
 }
 
 });
