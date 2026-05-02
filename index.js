@@ -94,7 +94,7 @@ option.setName('nombre')
 if (process.env.REGISTER_COMMANDS === "true") {
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-(async () => {
+;(async () => {
 try {
 await rest.put(
 Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
