@@ -349,6 +349,8 @@ try {
   return interaction.reply({ content: "✅", ephemeral: true });
 }
 
+}
+
 } catch (error) {  
   console.log("🔁 Recreando embed...");  
 
