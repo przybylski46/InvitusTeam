@@ -35,7 +35,7 @@ intents: [GatewayIntentBits.Guilds]
 // 🌿 MongoDB 
 
 const fs = require('fs');
-const Review = require('./models/Review');
+const Review = require('./models/reviews');
 const mongoose = require('mongoose');
 
 if (!process.env.MONGO_URI) {
@@ -286,6 +286,9 @@ perfil.reviews.push({
 
 // limitar
 perfil.reviews = perfil.reviews.slice(-50);
+
+perfil.markModified('reviews');
+// Avisa a Mongoose que el arreglo cambió
 
 await perfil.save();
 
