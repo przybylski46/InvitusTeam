@@ -2,19 +2,19 @@ if (process.env.BOT_OFF === "false") {
   process.exit(0);
 }
 
-// 🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫
-
 // 🌐 SERVIDOR WEB (WAKE)
 
 const PORT = process.env.PORT || 3000;
 
 require('http').createServer((req, res) => {
-res.end('Bot activo');
+  res.end('Bot activo');
 }).listen(PORT, () => {
-console.log("🌐 web activo");
+  console.log("🌐 web activo");
 });
 
-// Bot normal
+// =====================
+// 🤖 DISCORD
+// =====================
 
 const { 
   Client, 
@@ -27,64 +27,61 @@ const {
   ButtonStyle
 } = require('discord.js');
 
+const mongoose = require('mongoose');
+const Review = require('./models/Review');
+
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 
 const client = new Client({
-intents: [GatewayIntentBits.Guilds]
+  intents: [GatewayIntentBits.Guilds]
 });
 
-// 🌿 MongoDB 
-
-const fs = require('fs');
-const Review = require('./models/Review');
-const mongoose = require('mongoose');
-
-if (!process.env.MONGO_URI) {
-  console.error("❌ Falta MONGO_URI");
-}
+// =====================
+// 🌿 MONGODB
+// =====================
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Mongo conectado'))
-  .catch(err => console.error(err));
+  .then(() => console.log('🟢 Mongo conectado'))
+  .catch(err => console.error('❌ Mongo error:', err));
 
 // =====================
 // ⚙️ COMANDOS
 // =====================
 
 const commands = [
-new SlashCommandBuilder()
-.setName('reseña')
-.setDescription('Agregar una reseña')
-.addUserOption(option =>
-option.setName('persona').setDescription('Usuario').setRequired(true))
-.addIntegerOption(option =>
-option.setName('estrellas').setDescription('1 a 5').setRequired(true))
-.addStringOption(option =>
-option.setName('comentario').setDescription('Tu reseña').setRequired(true)),
+  new SlashCommandBuilder()
+    .setName('reseña')
+    .setDescription('Agregar una reseña')
+    .addUserOption(option =>
+      option.setName('persona').setDescription('Usuario').setRequired(true))
+    .addIntegerOption(option =>
+      option.setName('estrellas').setDescription('1 a 5').setRequired(true))
+    .addStringOption(option =>
+      option.setName('comentario').setDescription('Tu reseña').setRequired(true)),
 
-new SlashCommandBuilder()
-.setName('setembed')
-.setDescription('Vincular embed a persona')
-.addUserOption(option =>
-option.setName('persona').setDescription('Usuario').setRequired(true))
-.addStringOption(option =>
-option.setName('mensaje_id').setDescription('ID del embed').setRequired(true)),
+  new SlashCommandBuilder()
+    .setName('setembed')
+    .setDescription('Vincular embed a persona')
+    .addUserOption(option =>
+      option.setName('persona').setDescription('Usuario').setRequired(true))
+    .addStringOption(option =>
+      option.setName('mensaje_id').setDescription('ID del embed').setRequired(true)),
 
-new SlashCommandBuilder()
-.setName('crearperfil')
-.setDescription('Crear perfil de una persona')
-.addUserOption(option =>
-option.setName('persona').setDescription('Usuario').setRequired(true)),
+  new SlashCommandBuilder()
+    .setName('crearperfil')
+    .setDescription('Crear perfil de una persona')
+    .addUserOption(option =>
+      option.setName('persona').setDescription('Usuario').setRequired(true)),
 
-new SlashCommandBuilder()
-.setName('info')
-.setDescription('Embed')
-.addStringOption(option =>
-option.setName('nombre')
-.setDescription('Archivo')
-.setRequired(true))
+  new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('Embed')
+    .addStringOption(option =>
+      option.setName('nombre')
+        .setDescription('Archivo')
+        .setRequired(true))
 ];
 
 // =====================
@@ -92,36 +89,36 @@ option.setName('nombre')
 // =====================
 
 if (process.env.REGISTER_COMMANDS === "true") {
-const rest = new REST({ version: '10' }).setToken(TOKEN);
+  const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-(async () => {
-try {
-await rest.put(
-Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-{ body: commands }
-);
-console.log("✅ Comandos registrados");
-} catch (error) {
-console.error(error);
-}
-})();
+  (async () => {
+    try {
+      await rest.put(
+        Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+        { body: commands }
+      );
+      console.log("✅ Comandos registrados");
+    } catch (error) {
+      console.error(error);
+    }
+  })();
 }
 
 // =====================
-// 🤖 BOT LISTO
+// 🤖 READY
 // =====================
 
 client.once('ready', () => {
-console.log(`🤖 Bot listo como ${client.user.tag}`);
+  console.log(`🤖 Bot listo como ${client.user.tag}`);
 });
 
 // =====================
-// 🧩 EMBED GENERADOR
+// 🧩 EMBED
 // =====================
 
 function generarEmbedReseñas(username, promedio, total, listaReseñas) {
-return {
-description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆
+  return {
+    description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆
 
 <a:Star:1497749189096898680> Promedio:
 > ${promedio}
@@ -131,9 +128,9 @@ description: `# ⋆˚࿔ ┆ Reseñas de ${username}┆
 
 <a:Time:1497788363241947266> Últimas reseñas:
 ${listaReseñas}`,
-color: 16758784,
-image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/1498040507031486474/1000073586.png?ex=69efb671&is=69ee64f1&hm=5d633196a401b97c7429e1bc3c5da5dc553eb0297e03b170e2e374d000e9581c&" }
-};
+    color: 16758784,
+    image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/1498040507031486474/1000073586.png" }
+  };
 }
 
 // =====================
@@ -141,202 +138,165 @@ image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/149804
 // =====================
 
 client.on('interactionCreate', async interaction => {
-if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isChatInputCommand()) return;
 
-// =====================
-// 📂 INFO
-// =====================
-if (interaction.commandName === 'info') {
-const nombre = interaction.options.getString('nombre');
+  // =====================
+  // 📂 INFO
+  // =====================
+  if (interaction.commandName === 'info') {
+    const fs = require('fs');
+    const nombre = interaction.options.getString('nombre');
 
-try {  
-  const perfil = JSON.parse(  
-    fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')  
-  );  
+    try {
+      const perfil = JSON.parse(
+        fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')
+      );
 
-let components = [];
+      let components = [];
 
-if (nombre === "integrantes") {
+      if (nombre === "integrantes") {
+        const boton = new ButtonBuilder()
+          .setLabel("Ver integrantes")
+          .setStyle(ButtonStyle.Link)
+          .setURL("https://discord.com/channels/1112736931160281150/1499278020702371891");
 
-  const boton = new ButtonBuilder()
-    .setLabel("Ver integrantes")
-    .setStyle(ButtonStyle.Link)
-    .setURL("https://discord.com/channels/1112736931160281150/1499278020702371891");
+        components.push(new ActionRowBuilder().addComponents(boton));
+      }
 
-  const row = new ActionRowBuilder().addComponents(boton);
+      await interaction.channel.send({
+        embeds: perfil.embeds,
+        components
+      });
 
-  components.push(row);
-}
+    } catch {
+      return interaction.reply({ content: "❌", ephemeral: true });
+    }
+  }
 
-await interaction.channel.send({  
-  embeds: perfil.embeds,
-  components
-});
+  // =====================
+  // 🆕 CREAR PERFIL
+  // =====================
+  if (interaction.commandName === 'crearperfil') {
+    const user = interaction.options.getUser('persona');
 
-} catch (error) {  
-  console.error(error);  
-  return interaction.reply({ content: "❌", ephemeral: true });  
-}
+    let existente = await Review.findOne({ userId: user.id });
 
-}
+    if (existente) {
+      return interaction.reply({ content: "El perfil ya existe", ephemeral: true });
+    }
 
-// =====================
-// 🆕 CREAR PERFIL
-// =====================
-if (interaction.commandName === 'crearperfil') {
-const user = interaction.options.getUser('persona');
-const persona = user.id;
+    const embed = generarEmbedReseñas(user.username, "0.0", "0", "Sin reseñas aún");
 
-let existente = await Review.findOne({ userId: persona });
+    const mensaje = await interaction.channel.send({
+      embeds: [embed],
+    });
 
-if (existente) {
-  return interaction.reply({ content: "El perfil ya existe", ephemeral: true });
-}
+    await Review.create({
+      userId: user.id,
+      embedId: mensaje.id,
+      channelId: mensaje.channel.id,
+      reviews: []
+    });
 
-const embedData = generarEmbedReseñas(user.username, "0.0", "0", "Sin reseñas aún");
+    return interaction.reply({ content: `Perfil creado para <@${user.id}> ✅`, ephemeral: true });
+  }
 
-const mensaje = await interaction.channel.send({
-  embeds: [embedData],
-});
+  // =====================
+  // 🧩 SET EMBED
+  // =====================
+  if (interaction.commandName === 'setembed') {
+    const user = interaction.options.getUser('persona');
+    const mensaje_id = interaction.options.getString('mensaje_id');
 
-const nuevo = new Review({
-  userId: persona,
-  embedId: mensaje.id,
-  channelId: mensaje.channel.id,
-  reviews: []
-});
+    try {
+      const mensaje = await interaction.channel.messages.fetch(mensaje_id);
 
-await nuevo.save();
+      let perfil = await Review.findOne({ userId: user.id });
 
-return interaction.reply({ content: `Perfil creado para <@${persona}> ✅`, ephemeral: true });
+      if (!perfil) {
+        perfil = new Review({
+          userId: user.id,
+          embedId: mensaje.id,
+          channelId: mensaje.channel.id,
+          reviews: []
+        });
+      } else {
+        perfil.embedId = mensaje.id;
+        perfil.channelId = mensaje.channel.id;
+      }
 
-}
+      await perfil.save();
 
-// =====================
-// 🧩 SET EMBED
-// =====================
-if (interaction.commandName === 'setembed') {
-  const user = interaction.options.getUser('persona');
-  const persona = user.id;
-  const mensaje_id = interaction.options.getString('mensaje_id');
+      return interaction.reply({ content: "🔗 Vinculado", ephemeral: true });
 
-  try {
-    const canal = interaction.channel;
-    const mensaje = await canal.messages.fetch(mensaje_id);
+    } catch {
+      return interaction.reply({ content: "❌", ephemeral: true });
+    }
+  }
 
-    let perfil = await Review.findOne({ userId: persona });
+  // =====================
+  // ⭐ RESEÑA
+  // =====================
+  if (interaction.commandName === 'reseña') {
+    const user = interaction.options.getUser('persona');
+    const estrellas = interaction.options.getInteger('estrellas');
+    const comentario = interaction.options.getString('comentario');
+
+    if (estrellas < 1 || estrellas > 5) {
+      return interaction.reply({ content: "Pon entre 1 y 5 estrellas", ephemeral: true });
+    }
+
+    let perfil = await Review.findOne({ userId: user.id });
 
     if (!perfil) {
-      perfil = new Review({
-        userId: persona,
-        embedId: mensaje.id,
-        channelId: mensaje.channel.id,
-        reviews: []
-      });
-    } else {
-      perfil.embedId = mensaje.id;
-      perfil.channelId = mensaje.channel.id;
+      return interaction.reply({ content: "No está vinculado", ephemeral: true });
     }
+
+    perfil.reviews = perfil.reviews.filter(r => r.user !== interaction.user.id);
+
+    perfil.reviews.push({
+      user: interaction.user.id,
+      name: interaction.user.username,
+      estrellas,
+      comentario
+    });
+
+    perfil.reviews = perfil.reviews.slice(-50);
 
     await perfil.save();
 
-    return interaction.reply({
-      content: "🔗 Embed vinculado correctamente",
-      ephemeral: true
-    });
+    const reviews = perfil.reviews;
+    const total = reviews.length;
 
-  } catch (error) {
-    return interaction.reply({
-      content: "❌ No se pudo obtener el mensaje",
-      ephemeral: true
-    });
+    const promedio = total > 0
+      ? (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1)
+      : "0.0";
+
+    const ultimas = reviews.slice(-10).map(r =>
+      `> ⭐ **${r.estrellas} ▸ ${r.name}:** ${r.comentario}`
+    ).join("\n");
+
+    try {
+      const canal = await client.channels.fetch(perfil.channelId);
+      const mensaje = await canal.messages.fetch(perfil.embedId);
+
+      await mensaje.edit({
+        embeds: [generarEmbedReseñas(user.username, promedio, total, ultimas || "Sin reseñas")]
+      });
+
+    } catch {
+      const canal = await client.channels.fetch(perfil.channelId);
+
+      const nuevo = await canal.send({
+        embeds: [generarEmbedReseñas(user.username, promedio, total, ultimas || "Sin reseñas")]
+      });
+
+      perfil.embedId = nuevo.id;
+      await perfil.save();
+    }
+
+    return interaction.reply({ content: "✅", ephemeral: true });
   }
-}
-
-// =====================
-// ⭐ RESEÑA
-// =====================
-if (interaction.commandName === 'reseña') {
-
-const user = interaction.options.getUser('persona');  
-const persona = user.id;  
-
-const estrellas = interaction.options.getInteger('estrellas');  
-const comentario = interaction.options.getString('comentario');  
-
-if (estrellas < 1 || estrellas > 5) {  
-  return interaction.reply({ content: "Pon entre 1 y 5 estrellas", ephemeral: true });  
-}  
-
-let perfil = await Review.findOne({ userId: persona });
-
-if (!perfil) {
-  return interaction.reply({ content: "No está vinculado", ephemeral: true });
-}
-
-perfil.reviews = perfil.reviews.filter(r => r.user !== interaction.user.id);
-
-perfil.reviews.push({
-  user: interaction.user.id,
-  name: interaction.user.username,
-  estrellas,
-  comentario
-});
-
-perfil.reviews = perfil.reviews.slice(-50);
-
-await perfil.save();
-
-const reviews = perfil.reviews;
-
-const total = reviews.length;  
-const promedio = (reviews.reduce((acc, r) => acc + r.estrellas, 0) / total).toFixed(1);  
-
-const ultimas = reviews.slice(-10).map(r =>  
-  `> <a:Star:1497749189096898680> **${r.estrellas} ▸ ${r.name}:** ${r.comentario}`  
-).join("\n");  
-
-try {
-
-  const canal = await client.channels.fetch(perfil.channelId);
-
-  if (!canal || !canal.isTextBased()) {
-    throw new Error("Canal inválido");
-  }
-
-  const mensaje = await canal.messages.fetch(perfil.embedId);
-
-  const embedActualizado = generarEmbedReseñas(  
-    user.username,  
-    promedio,  
-    total,  
-    ultimas || "Sin reseñas"  
-  );  
-
-  await mensaje.edit({  
-    embeds: [embedActualizado],  
-  });
-
-  return interaction.reply({ content: "✅", ephemeral: true });
-
-} catch (error) {  
-
-  console.log("🔁 Recreando embed...");  
-
-  const embedNuevo = generarEmbedReseñas(  
-    user.username,  
-    promedio,  
-    total,  
-    ultimas || "Sin reseñas"  
-  );  
-
-  let canal;
-
-  try {
-    canal = await client.channels.fetch(perfil.channelId);
-}
-}
-
 });
 
 client.login(TOKEN);
