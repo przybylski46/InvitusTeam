@@ -33,9 +33,7 @@ const client = new Client({
 intents: [GatewayIntentBits.Guilds]
 });
 
-// =====================
 // 📦 BASE DE DATOS
-// =====================
 
 function loadData() {
 try {
@@ -50,6 +48,7 @@ fs.writeFileSync('reviews.json', JSON.stringify(data, null, 2));
 }
 
 // 🧠 DATA EN MEMORIA
+
 let data = loadData();
 
 // ⏱️ GUARDADO DIFERIDO
@@ -62,9 +61,7 @@ console.log("💾 Guardado");
 }, 5000);
 }
 
-// =====================
 // ⚙️ COMANDOS
-// =====================
 
 const commands = [
 new SlashCommandBuilder()
@@ -77,13 +74,25 @@ option.setName('estrellas').setDescription('1 a 5').setRequired(true))
 .addStringOption(option =>
 option.setName('comentario').setDescription('Tu reseña').setRequired(true)),
 
+// ⭕ EDIT INFO
+
+new SlashCommandBuilder()
+  .setName('editinfo')
+  .setDescription('Actualizar')
+  .addStringOption(option =>
+    option.setName('nombre').setDescription('Archivo').setRequired(true))
+  .addStringOption(option =>
+    option.setName('mensaje_id').setDescription('ID').setRequired(true)),
+
+// ⭕
+
 new SlashCommandBuilder()
 .setName('setembed')
-.setDescription('Vincular embed a persona')
+.setDescription('Vincular embed')
 .addUserOption(option =>
 option.setName('persona').setDescription('Usuario').setRequired(true))
 .addStringOption(option =>
-option.setName('mensaje_id').setDescription('ID del embed').setRequired(true)),
+option.setName('mensaje_id').setDescription('ID').setRequired(true)),
 
 new SlashCommandBuilder()
 .setName('crearperfil')
@@ -100,9 +109,7 @@ option.setName('nombre')
 .setRequired(true))
 ];
 
-// =====================
 // 🚀 REGISTRAR COMANDOS
-// =====================
 
 if (process.env.REGISTER_COMMANDS === "true") {
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -120,17 +127,13 @@ console.error(error);
 })();
 }
 
-// =====================
 // 🤖 BOT LISTO
-// =====================
 
 client.once('ready', () => {
 console.log(`🤖 Bot listo como ${client.user.tag}`);
 });
 
-// =====================
 // 🧩 EMBED GENERADOR
-// =====================
 
 function generarEmbedReseñas(username, promedio, total, listaReseñas) {
 return {
@@ -149,16 +152,13 @@ image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/149804
 };
 }
 
-// =====================
 // 💬 INTERACCIONES
-// =====================
 
 client.on('interactionCreate', async interaction => {
 if (!interaction.isChatInputCommand()) return;
 
-// =====================
 // 📂 INFO
-// =====================
+
 if (interaction.commandName === 'info') {
 const nombre = interaction.options.getString('nombre');
 
@@ -193,9 +193,35 @@ await interaction.channel.send({
 
 }
 
-// =====================
+// ♻️ EDIT INFO
+
+if (interaction.commandName === 'editinfo') {
+  const fs = require('fs');
+
+  const nombre = interaction.options.getString('nombre');
+  const mensaje_id = interaction.options.getString('mensaje_id');
+
+  try {
+    const embedData = JSON.parse(
+      fs.readFileSync(`./Embeds/${nombre}.json`, 'utf8')
+    );
+
+    const mensaje = await interaction.channel.messages.fetch(mensaje_id);
+
+    await mensaje.edit({
+      embeds: embedData.embeds
+    });
+
+    return interaction.reply({ content: "✅", ephemeral: true });
+
+  } catch (err) {
+    console.error(err);
+    return interaction.reply({ content: "❌", ephemeral: true });
+  }
+}
+
 // 🆕 CREAR PERFIL
-// =====================
+
 if (interaction.commandName === 'crearperfil') {
 const user = interaction.options.getUser('persona');
 const persona = user.id;
@@ -223,9 +249,8 @@ return interaction.reply({ content: `Perfil creado para <@${persona}> ✅`, ephe
 
 }
 
-// =====================
 // 🧩 SET EMBED
-// =====================
+
 if (interaction.commandName === 'setembed') {
 const user = interaction.options.getUser('persona');
 const persona = user.id;
@@ -256,9 +281,8 @@ return interaction.reply({ content: "❌", ephemeral: true });
 }
 }
 
-// =====================
 // ⭐ RESEÑA
-// =====================
+
 if (interaction.commandName === 'reseña') {
 
 const user = interaction.options.getUser('persona');  
@@ -287,6 +311,7 @@ data[persona].reviews.push({
 });  
 
 // 🧹 limitar tamaño  
+
 data[persona].reviews = data[persona].reviews.slice(-50);  
 
 const reviews = data[persona].reviews;  
