@@ -1,6 +1,3 @@
-if (process.env.BOT_OFF === "false") {
-  process.exit(0);
-}
 
 // 🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫
 
