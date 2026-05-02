@@ -140,7 +140,7 @@ image: { url: "https://cdn.discordapp.com/attachments/1498040372323024906/149804
 // 💬 INTERACCIONES
 // =====================
 
-client.on('interactionCreate', async interaction => {
+client.on('interactionCreate'), async interaction => {
 if (!interaction.isChatInputCommand()) return;
 
 // =====================
@@ -355,7 +355,6 @@ await perfil.save();
 return interaction.reply({ content: "✅", ephemeral: true });
 
 }
-
 });
 
 client.login(TOKEN);
