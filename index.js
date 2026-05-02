@@ -36,6 +36,16 @@ const client = new Client({
 intents: [GatewayIntentBits.Guilds]
 });
 
+// 🌿 MongoDB 
+
+npm install mongoose
+
+const mongoose = require('mongoose');
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('Mongo conectado'))
+  .catch(err => console.error(err));
+
 // =====================
 // 📦 BASE DE DATOS
 // =====================
