@@ -325,8 +325,9 @@ const embedActualizado = generarEmbedReseñas(
 });
 
   return interaction.reply({ content: "✅", ephemeral: true });
-
-} catch (error) {  
+}
+}
+  catch (error) {  
   console.log("🔁 Recreando embed...");  
 
   const embedNuevo = generarEmbedReseñas(  
