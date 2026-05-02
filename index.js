@@ -1,3 +1,6 @@
+if (process.env.BOT_OFF === "false") {
+  process.exit(0);
+}
 
 // 🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫
 
@@ -35,7 +38,7 @@ intents: [GatewayIntentBits.Guilds]
 // 🌿 MongoDB 
 
 const fs = require('fs');
-const Review = require('./models/reviews');
+const Review = require('./models/Review');
 const mongoose = require('mongoose');
 
 if (!process.env.MONGO_URI) {
@@ -91,7 +94,7 @@ option.setName('nombre')
 if (process.env.REGISTER_COMMANDS === "true") {
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-;(async () => {
+(async () => {
 try {
 await rest.put(
 Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
@@ -287,9 +290,6 @@ perfil.reviews.push({
 // limitar
 perfil.reviews = perfil.reviews.slice(-50);
 
-perfil.markModified('reviews');
-// Avisa a Mongoose que el arreglo cambió
-
 await perfil.save();
 
 const reviews = perfil.reviews;
@@ -326,8 +326,7 @@ const embedActualizado = generarEmbedReseñas(
 
   return interaction.reply({ content: "✅", ephemeral: true });
 }
-}
-  catch (error) {  
+} catch (error) {  
   console.log("🔁 Recreando embed...");  
 
   const embedNuevo = generarEmbedReseñas(  
@@ -342,8 +341,7 @@ const embedActualizado = generarEmbedReseñas(
 try {
 canal = await client.channels.fetch(perfil.channelId);
 if (!canal || !canal.isTextBased()) throw new Error();
-} 
-catch {
+} catch {
 return interaction.reply({ content: "Canal incorrecto", ephemeral: true });
 }
 
@@ -355,6 +353,7 @@ perfil.embedId = nuevoMensaje.id;
 await perfil.save();
 
 return interaction.reply({ content: "✅", ephemeral: true });
+
 }
 
 });
