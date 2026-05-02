@@ -341,7 +341,8 @@ const embedActualizado = generarEmbedReseñas(
 try {
 canal = await client.channels.fetch(perfil.channelId);
 if (!canal || !canal.isTextBased()) throw new Error();
-} catch {
+} 
+catch {
 return interaction.reply({ content: "Canal incorrecto", ephemeral: true });
 }
 
@@ -353,7 +354,7 @@ perfil.embedId = nuevoMensaje.id;
 await perfil.save();
 
 return interaction.reply({ content: "✅", ephemeral: true });
-
+}
 
 });
 
