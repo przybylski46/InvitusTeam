@@ -351,7 +351,7 @@ await perfil.save();
 
 return interaction.reply({ content: "✅", ephemeral: true });
 }
-
+}
 });
 
 client.login(TOKEN);
